@@ -43,6 +43,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -67,7 +68,6 @@ class RunningCrew{
 public class RunningCrewInfoList extends AppCompatActivity
         implements OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback{
-
     private GoogleMap mMap;
     private Marker currentMarker = null;
 
@@ -108,11 +108,13 @@ public class RunningCrewInfoList extends AppCompatActivity
     private String addedCrewMinutes;
     private String addedCrewSeconds;
 
-    ListViewAdapter adapter;
-    ArrayList<RunningCrew> crewArrayList;
+    public static ListViewAdapter adapter;
+    public static ArrayList<RunningCrew> crewArrayList = new ArrayList<RunningCrew>();
     ArrayList<LatLng> temp = new ArrayList<LatLng>();
     LatLng runningPathStart;
     LatLng runningPathEnd;
+
+    ArrayList<Polyline> polylines = new ArrayList<Polyline>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,29 +147,49 @@ public class RunningCrewInfoList extends AppCompatActivity
         listview = (ListView) findViewById(R.id.listView);
         listview.setAdapter(adapter);
 
-        adapter.addItem("크루이름1","6m/km", "3명/6명", "21분 56초");
-        adapter.addItem("크루이름2", "8m/km", "2명/6명", "11분 20초");
-        adapter.addItem("크루이름3", "5m/km","5명/7명", "18분 44초");
+        for(int i=0;i<crewArrayList.size();i++){
+            RunningCrew temp = crewArrayList.get(i);
+            adapter.addItem(temp.name, temp.level, temp.memberNumber, temp.time);
+        }
+
+        joinButton = findViewById(R.id.joinBtn);
+        contactButton = findViewById(R.id.contactBtn);
 
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            private View oldSelection = null;
 
+            public void clearSelection(){
+                if(oldSelection != null){
+                    oldSelection.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+                    for(Polyline line : polylines){
+                        line.remove();
+                    }
+                    polylines.clear();
+                }
+            }
             @Override
             public void onItemClick(AdapterView parent, View v, int position, long id) {
+                clearSelection();
+                oldSelection = v;
+                v.setBackgroundColor(getResources().getColor(android.R.color.holo_purple));
                 ListViewItem item = (ListViewItem) parent.getItemAtPosition(position);
 
-                contactButton = v.findViewById(R.id.contactBtn);
-                joinButton = v.findViewById(R.id.joinBtn);
+                for(int i=0; i<crewArrayList.size();i++){
+                    if(crewArrayList.get(i).name.equals(item.getCrewName())){
+                        int j;
+                        for(j=0;j<crewArrayList.get(i).path.size()-1;j++){
+                            PolylineOptions options = new PolylineOptions().add(crewArrayList.get(i).path.get(j)).add(crewArrayList.get(i).path.get(j+1)).width(15).color(Color.GREEN).geodesic(true);
+                            polylines.add(mMap.addPolyline(options));
+                        }
+                        break;
+                    }
+                }
 
-                /*if (contactButton.getVisibility() == View.GONE) {
-                    contactButton.setVisibility(View.VISIBLE);
-                    joinButton.setVisibility(View.VISIBLE);
-                } else {
-                    contactButton.setVisibility(View.GONE);
-                    joinButton.setVisibility(View.GONE);
-                }*/
+                contactButton.setVisibility(View.VISIBLE);
+                joinButton.setVisibility(View.VISIBLE);
             }
-        }) ;
 
+        }) ;
 
         //크루 만들기 버튼
 
@@ -175,48 +197,41 @@ public class RunningCrewInfoList extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), MakeCrew.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
             }
         });
 
-        refreshBtn = findViewById(R.id.refresh);
-        refreshBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                addedCrewName = getIntent().getStringExtra("runningName");
-                addedCrewLevel = getIntent().getStringExtra("runningLevel");
-                addedCrewNum = getIntent().getStringExtra("runningNum");
-                addedCrewMinutes = getIntent().getStringExtra("runningMinutes");
-                addedCrewSeconds = getIntent().getStringExtra("runningSeconds");
-                temp = getIntent().getParcelableArrayListExtra("runningPath");
-                runningPathStart = getIntent().getParcelableExtra("runningPathStart");
-                runningPathEnd = getIntent().getParcelableExtra("runningPathEnd");
+        if(getIntent().hasExtra("runningName")) {
+            addedCrewName = getIntent().getStringExtra("runningName");
+            addedCrewLevel = getIntent().getStringExtra("runningLevel");
+            addedCrewNum = getIntent().getStringExtra("runningNum");
+            addedCrewMinutes = getIntent().getStringExtra("runningMinutes");
+            addedCrewSeconds = getIntent().getStringExtra("runningSeconds");
+            temp = getIntent().getParcelableArrayListExtra("runningPath");
+            runningPathStart = getIntent().getParcelableExtra("runningPathStart");
+            runningPathEnd = getIntent().getParcelableExtra("runningPathEnd");
+            adapter.addItem(addedCrewName, addedCrewLevel+"분/km", "0명/" + addedCrewNum + "명", addedCrewMinutes + "분" + addedCrewSeconds + "초");
 
-                Toast.makeText(RunningCrewInfoList.this, addedCrewName, Toast.LENGTH_SHORT).show();
+            RunningCrew tempCrew = new RunningCrew();
+            tempCrew.name = addedCrewName;
+            tempCrew.level = addedCrewLevel+"분/km";
+            tempCrew.memberNumber = "0명/" + addedCrewNum + "명";
+            tempCrew.time = addedCrewMinutes + "분" + addedCrewSeconds+"초";
+            tempCrew.path = temp;
+            tempCrew.path.add(runningPathEnd);
+            tempCrew.pathStart = runningPathStart;
+            tempCrew.pathEnd = runningPathEnd;
 
-
-                RunningCrew tempCrew = new RunningCrew();
-                tempCrew.name = addedCrewName;
-                tempCrew.level = addedCrewLevel;
-                tempCrew.memberNumber = addedCrewNum;
-                tempCrew.time = addedCrewMinutes + "분" + addedCrewSeconds+"초";
-                tempCrew.path = temp;
-                tempCrew.pathStart = runningPathStart;
-                tempCrew.pathEnd = runningPathEnd;
-
-                crewArrayList.add(tempCrew);
-                Log.d("CREWSIZE", crewArrayList.size()+"");
-
-                adapter.addItem(addedCrewName, addedCrewLevel,"0명/"+addedCrewNum+"명", addedCrewMinutes+"분"+addedCrewSeconds+"초");
-            }
-        });
+            crewArrayList.add(tempCrew);
+            Toast.makeText(RunningCrewInfoList.this, crewArrayList.size()+"", Toast.LENGTH_SHORT).show();
+        }
     }
+
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         Log.d(TAG, "onMapReady :");
-
         mMap = googleMap;
-
         //런타임 퍼미션 요청 대화상자나 GPS 활성 요청 대화상자 보이기전에
         //지도의 초기위치를 서울로 이동
         setDefaultLocation();

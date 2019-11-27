@@ -1,41 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/layout_runningcrewlist"
-    tools:context=".MainActivity"
-    android:orientation="vertical">
-
-    <fragment
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="match_parent"
-        android:layout_height="400dp"
-        tools:context=".MapsActivity" />
-
-    <ListView
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:id="@+id/listView"/>
+    android:id="@+id/layout_runningcrewinfo"
+    tools:context=".MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <Button
-            android:id="@+id/makeCrew"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginTop="20dp"
-            android:text="크루 만들기" />
-
-    </LinearLayout>
-    <Button
-        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/refresh"
-        android:text="새로고침"/>
+        android:orientation="vertical">
 
-</LinearLayout>
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            tools:context=".MapsActivity" />
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:id="@+id/listView"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text = "참여하기"
+                android:visibility="gone"
+                android:id="@+id/joinBtn"
+                android:layout_weight="1"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text = "연락하기"
+                android:visibility="gone"
+                android:id="@+id/contactBtn"
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/makeCrew"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginTop="20dp"
+                android:text="크루 만들기" />
+        </LinearLayout>
+    </LinearLayout>
+
+
+</ScrollView>

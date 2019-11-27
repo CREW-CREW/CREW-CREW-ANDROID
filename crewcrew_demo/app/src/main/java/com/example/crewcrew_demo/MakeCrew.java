@@ -162,16 +162,19 @@ public class MakeCrew extends AppCompatActivity implements OnMapReadyCallback, A
         makeCrewMinutes = (EditText)findViewById(R.id.makeCrewTimeMinutes);
         makeCrewSeconds = (EditText)findViewById(R.id.makeCrewTimeSeconds);
 
-        addedCrewName = makeCrewName.getText().toString();
-        addedCrewLevel = makeCrewLevel.getText().toString();
-        addedCrewNum = makeCrewNum.getText().toString();
-        addedCrewMinutes = makeCrewMinutes.getText().toString();
-        addedCrewSeconds = makeCrewSeconds.getText().toString();
+
 
         saveNewCrew.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), RunningCrewInfoList.class);
+
+                addedCrewName = makeCrewName.getText().toString();
+                addedCrewLevel = makeCrewLevel.getText().toString();
+                addedCrewNum = makeCrewNum.getText().toString();
+                addedCrewMinutes = makeCrewMinutes.getText().toString();
+                addedCrewSeconds = makeCrewSeconds.getText().toString();
+
                 intent.putExtra("runningPath", temp);
                 intent.putExtra("runningMinutes", addedCrewMinutes);
                 intent.putExtra("runningSeconds",addedCrewSeconds);
@@ -181,6 +184,7 @@ public class MakeCrew extends AppCompatActivity implements OnMapReadyCallback, A
                 intent.putExtra("runningPathStart", runningPathStart);
                 intent.putExtra("runningPathEnd", runningPathEnd);
 
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
             }
         });
