@@ -93,7 +93,6 @@ public class TempRunningCrewInfoList extends AppCompatActivity
         setContentView(R.layout.runningcrew_info);
 
         mLayout = findViewById(R.id.layout_main);
-        makeCrewBtn = findViewById(R.id.makeCrew);
 
         locationRequest = new LocationRequest()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)

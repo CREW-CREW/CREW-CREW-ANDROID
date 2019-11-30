@@ -14,6 +14,8 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -23,6 +25,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -117,13 +120,35 @@ public class RunningCrewInfoList extends AppCompatActivity
     ArrayList<Polyline> polylines = new ArrayList<Polyline>();
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_running, menu) ;
+
+        return true ;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_addcrew :
+                Intent intent = new Intent(getApplicationContext(), MakeCrew.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                return true ;
+            default :
+                return super.onOptionsItemSelected(item) ;
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.runningcrew_info);
 
+        ActionBar ab = getSupportActionBar();
+        ab.setTitle("러닝 크루 정보");
+
         mLayout = findViewById(R.id.layout_main);
-        makeCrewBtn = findViewById(R.id.makeCrew);
 
         locationRequest = new LocationRequest()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -190,17 +215,6 @@ public class RunningCrewInfoList extends AppCompatActivity
             }
 
         }) ;
-
-        //크루 만들기 버튼
-
-        makeCrewBtn.setOnClickListener(new Button.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), MakeCrew.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-            }
-        });
 
         if(getIntent().hasExtra("runningName")) {
             addedCrewName = getIntent().getStringExtra("runningName");
@@ -387,7 +401,6 @@ public class RunningCrewInfoList extends AppCompatActivity
         List<Address> addresses;
 
         try {
-
             addresses = geocoder.getFromLocation(
                     latlng.latitude,
                     latlng.longitude,
