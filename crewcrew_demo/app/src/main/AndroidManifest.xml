@@ -3,6 +3,7 @@
     package="com.example.crewcrew_demo">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:allowBackup="true"
@@ -14,7 +15,7 @@
 
         <meta-data
             android:name = "com.google.android.geo.API_KEY"
-            android:value="API KEY"/>
+            android:value="AIzaSyAJyLp6xHbO6J8m8yJtnK-PCHGJ7NkLDW8"/>
 
         <activity android:name=".ExerciseSelection">
             <intent-filter>
@@ -27,5 +28,7 @@
         <activity android:name=".MainActivity"/>
         <activity android:name=".RunningCrewInfoList"/>
         <activity android:name = ".MakeCrew"/>
+        <activity android:name=".ChatActivity"/>
+        <activity android:name=".StartChatActivity"/>
     </application>
 </manifest>
