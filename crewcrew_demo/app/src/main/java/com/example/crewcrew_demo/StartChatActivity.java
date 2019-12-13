@@ -8,9 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -35,6 +33,10 @@ public class StartChatActivity extends AppCompatActivity {
         user_next = (Button) findViewById(R.id.user_next);
         chat_list = (ListView) findViewById(R.id.chat_list);
 
+        Intent i = getIntent();
+        String crewName = i.getStringExtra("CrewName");
+        user_chat.setText(crewName);
+
         user_next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -44,18 +46,16 @@ public class StartChatActivity extends AppCompatActivity {
                 Intent intent = new Intent(StartChatActivity.this, ChatActivity.class);
                 intent.putExtra("chatName", user_chat.getText().toString());
                 intent.putExtra("userName", user_edit.getText().toString());
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
             }
         });
-
         showChatList();
-
     }
 
     private void showChatList() {
         // 리스트 어댑터 생성 및 세팅
         final ArrayAdapter<String> adapter
-
                 = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, android.R.id.text1);
         chat_list.setAdapter(adapter);
 
@@ -87,6 +87,5 @@ public class StartChatActivity extends AppCompatActivity {
 
             }
         });
-
     }
 }

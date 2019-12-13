@@ -28,13 +28,30 @@
                 android:id="@+id/crewLevel"
                 android:text="난이도: 6m/km"
                 android:textAlignment="center"/>
-            <TextView
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:id="@+id/crewNum"
-                android:text="인원: 3명/6명"
-                android:textAlignment="center"/>
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:id="@+id/crewCurNum"
+                    android:text="3명"
+                    android:textAlignment="textEnd"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:id="@+id/crewNum"
+                    android:text="/6명"
+                    android:textAlignment="textStart"/>
+
+            </LinearLayout>
+
         </LinearLayout>
 
         <TextView

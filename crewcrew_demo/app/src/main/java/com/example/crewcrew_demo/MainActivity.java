@@ -131,10 +131,6 @@ public class MainActivity extends AppCompatActivity
                 ListView) findViewById(R.id.listView);
         listview.setAdapter(adapter);
 
-        adapter.addItem("크루이름1","6m/km", "3명/6명", "21분 56초");
-        adapter.addItem("크루이름2", "8m/km", "2명/6명", "11분 20초");
-        adapter.addItem("크루이름3", "5m/km","5명/7명", "18분 44초");
-
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
@@ -461,7 +457,6 @@ public class MainActivity extends AppCompatActivity
                     break;
                 }
             }
-
 
             if ( check_result ) {
 

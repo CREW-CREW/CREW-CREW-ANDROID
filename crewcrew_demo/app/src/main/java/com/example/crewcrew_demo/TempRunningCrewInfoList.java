@@ -125,7 +125,6 @@ public class TempRunningCrewInfoList extends AppCompatActivity
                 addedCrewTime = makeCrewTime.getText().toString();
 
                 Log.d("TAG", addedCrewName);
-                adapter.addItem(addedCrewName,addedCrewLevel,addedCrewNum, addedCrewTime);
                 adapter.notifyDataSetChanged();
                 dialog.dismiss();
             }
@@ -164,15 +163,6 @@ public class TempRunningCrewInfoList extends AppCompatActivity
             jsonObject.put("crewnum", addedCrewNum);
             jsonObject.put("crewtime", addedCrewTime);
         }catch(JSONException e){
-            e.printStackTrace();
-        }
-        receiveObject(jsonObject);
-    }
-    private void receiveObject(JSONObject data){
-        try {
-            adapter.addItem(data.getString("crewname"), data.getString("crewlevel"),
-                    data.getString("crewnum"), data.getString("crewtime"));
-        }catch (JSONException e){
             e.printStackTrace();
         }
     }

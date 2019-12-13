@@ -162,8 +162,6 @@ public class MakeCrew extends AppCompatActivity implements OnMapReadyCallback, A
         makeCrewMinutes = (EditText)findViewById(R.id.makeCrewTimeMinutes);
         makeCrewSeconds = (EditText)findViewById(R.id.makeCrewTimeSeconds);
 
-
-
         saveNewCrew.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

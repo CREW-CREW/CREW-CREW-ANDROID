@@ -8,6 +8,7 @@ public class ListViewItem {
     private String crewLevel;
     private String crewNum;
     private String crewRuntime;
+    private String crewCurNum;
 
     public void setCrewName(String name){
         crewName = name;
@@ -21,6 +22,7 @@ public class ListViewItem {
     public void setCrewRuntime(String runtime){
         crewRuntime = runtime;
     }
+    public void setCrewCurNum(String curNum){crewCurNum = curNum;}
 
     public String getCrewName(){
         return this.crewName;
@@ -34,4 +36,5 @@ public class ListViewItem {
     public String getCrewRuntime(){
         return this.crewRuntime;
     }
+    public String getCrewCurNum(){return this.crewCurNum;}
 }

@@ -2,10 +2,12 @@ package com.example.crewcrew_demo;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -31,6 +33,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.baoyz.swipemenulistview.SwipeMenu;
+import com.baoyz.swipemenulistview.SwipeMenuAdapter;
+import com.baoyz.swipemenulistview.SwipeMenuCreator;
+import com.baoyz.swipemenulistview.SwipeMenuItem;
+import com.baoyz.swipemenulistview.SwipeMenuListView;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -49,6 +56,11 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -63,9 +75,18 @@ class RunningCrew{
     String level;
     String memberNumber;
     String time;
+    String currentMemberNumber;
     ArrayList<LatLng> path = new ArrayList<LatLng>();
     LatLng pathStart;
     LatLng pathEnd;
+}
+
+class DatabaseRunningCrew{
+    String level;
+    String number;
+    ArrayList<Double> latitude = new ArrayList<Double>();
+    ArrayList<Double> longitude = new ArrayList<Double>();
+    String time;
 }
 
 public class RunningCrewInfoList extends AppCompatActivity
@@ -119,6 +140,13 @@ public class RunningCrewInfoList extends AppCompatActivity
 
     ArrayList<Polyline> polylines = new ArrayList<Polyline>();
 
+    private FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+    private DatabaseReference databaseReference = firebaseDatabase.getReference();
+
+    public static ArrayList<RunningCrew> dbCrewList = new ArrayList<RunningCrew>();
+    Button crewButton;
+    Boolean initialize = true;
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_running, menu) ;
@@ -133,10 +161,21 @@ public class RunningCrewInfoList extends AppCompatActivity
                 Intent intent = new Intent(getApplicationContext(), MakeCrew.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
+                finish();
                 return true ;
+            case R.id.action_chat:
+                intent = new Intent(getApplicationContext(), StartChatActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                return true;
             default :
                 return super.onOptionsItemSelected(item) ;
         }
+    }
+
+    public static int dp2px(Context ctx, float dp) {
+        final float scale = ctx.getResources().getDisplayMetrics().density;
+        return (int) (dp * scale + 0.5f);
     }
 
     @Override
@@ -167,18 +206,137 @@ public class RunningCrewInfoList extends AppCompatActivity
 
         //리스트 생성
 
-        ListView listview ;
+        final SwipeMenuListView listview ;
         adapter = new ListViewAdapter() ;
-        listview = (ListView) findViewById(R.id.listView);
+        listview = findViewById(R.id.listView);
         listview.setAdapter(adapter);
 
-        for(int i=0;i<crewArrayList.size();i++){
-            RunningCrew temp = crewArrayList.get(i);
-            adapter.addItem(temp.name, temp.level, temp.memberNumber, temp.time);
-        }
+        databaseReference.child("RunningCrew").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                RunningCrew dbCrew = new RunningCrew();
+                dbCrew.name = dataSnapshot.getKey();
+                ArrayList<Double> latitude = new ArrayList<Double>();
+                ArrayList<Double> longitude = new ArrayList<Double>();
+                //Toast.makeText(RunningCrewInfoList.this, "child: "+dataSnapshot.getKey()+"", Toast.LENGTH_SHORT).show();
 
-        joinButton = findViewById(R.id.joinBtn);
-        contactButton = findViewById(R.id.contactBtn);
+                for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
+                    //dbCrewList.add(dataSnapshot1.getValue(RunningCrew.class));
+                    //Toast.makeText(RunningCrewInfoList.this, "datasnapshot1: " + dataSnapshot1.getKey() + "", Toast.LENGTH_SHORT).show();
+                    if(dataSnapshot1.getKey().equals("latitude")){
+                        for(DataSnapshot dataSnapshot2 : dataSnapshot1.getChildren()) {
+                            //Toast.makeText(RunningCrewInfoList.this, "path: " + dataSnapshot2.getValue() + "", Toast.LENGTH_SHORT).show();
+                            latitude.add((double) dataSnapshot2.getValue());
+                        }
+                    }else if(dataSnapshot1.getKey().equals("level")){
+                        dbCrew.level = dataSnapshot1.getValue().toString();
+                    }else if(dataSnapshot1.getKey().equals("longitude")){
+                        for(DataSnapshot dataSnapshot2 : dataSnapshot1.getChildren()) {
+                            //Toast.makeText(RunningCrewInfoList.this, "path: " + dataSnapshot2.getValue() + "", Toast.LENGTH_SHORT).show();
+                            longitude.add((double) dataSnapshot2.getValue());
+                        }
+                    }else if(dataSnapshot1.getKey().equals("number")){
+                        dbCrew.memberNumber = dataSnapshot1.getValue().toString();
+                    }else if(dataSnapshot1.getKey().equals("time")){
+                        dbCrew.time = dataSnapshot1.getValue().toString();
+                    }else if(dataSnapshot1.getKey().equals("curNum")){
+                        dbCrew.currentMemberNumber = dataSnapshot1.getValue().toString();
+                    }
+                }
+
+                for(int i=0;i<latitude.size();i++){
+                    LatLng tmp = new LatLng(latitude.get(i), longitude.get(i));
+                    dbCrew.path.add(tmp);
+
+                }
+
+                dbCrewList.add(dbCrew);
+                adapter.addItem(dbCrew.name, dbCrew.level+"분/km", "/"+dbCrew.memberNumber+"명", "운동시간: "+dbCrew.time+"분", dbCrew.currentMemberNumber+"명");
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        SwipeMenuCreator creator = new SwipeMenuCreator() {
+
+            @Override
+            public void create(SwipeMenu menu) {
+                // create "open" item
+                SwipeMenuItem openItem = new SwipeMenuItem(
+                        getApplicationContext());
+                // set item background
+                openItem.setBackground(new ColorDrawable(Color.rgb(0xC9, 0xC9,
+                        0xCE)));
+                // set item width
+                openItem.setWidth(dp2px(RunningCrewInfoList.this ,90));
+                // set item title
+                openItem.setTitle("Contact");
+                // set item title fontsize
+                openItem.setTitleSize(18);
+                // set item title font color
+                openItem.setTitleColor(Color.WHITE);
+                // add to menu
+                menu.addMenuItem(openItem);
+
+                // create "delete" item
+                SwipeMenuItem deleteItem = new SwipeMenuItem(
+                        getApplicationContext());
+                // set item background
+                deleteItem.setBackground(new ColorDrawable(Color.rgb(0xF9,
+                        0x3F, 0x25)));
+                deleteItem.setTitle("Join");
+                deleteItem.setTitleSize(18);
+                deleteItem.setTitleColor(Color.WHITE);
+                // set item width
+                deleteItem.setWidth(dp2px(RunningCrewInfoList.this,90));
+                // set a icon
+                // add to menu
+                menu.addMenuItem(deleteItem);
+            }
+        };
+
+// set creator
+        listview.setMenuCreator(creator);
+        listview.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
+                ListViewItem item = (ListViewItem) listview.getItemAtPosition(position);
+                switch(index) {
+                    case 0:
+                        Intent intent = new Intent(getApplicationContext(), StartChatActivity.class);
+                        intent.putExtra("CrewName", item.getCrewName());
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                        break;
+                    case 1:
+                        int a = Integer.parseInt(item.getCrewCurNum().substring(0,1));
+                        a=a+1;
+                        databaseReference.child("RunningCrew").child(item.getCrewName()).child("curNum").setValue(a+"");
+                        adapter.notifyDataSetChanged();
+                        break;
+                }
+                return false;
+            }
+        });
 
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             private View oldSelection = null;
@@ -199,21 +357,17 @@ public class RunningCrewInfoList extends AppCompatActivity
                 v.setBackgroundColor(getResources().getColor(android.R.color.holo_purple));
                 ListViewItem item = (ListViewItem) parent.getItemAtPosition(position);
 
-                for(int i=0; i<crewArrayList.size();i++){
-                    if(crewArrayList.get(i).name.equals(item.getCrewName())){
+                for(int i=0; i<dbCrewList.size();i++){
+                    if(dbCrewList.get(i).name.equals(item.getCrewName())){
                         int j;
-                        for(j=0;j<crewArrayList.get(i).path.size()-1;j++){
-                            PolylineOptions options = new PolylineOptions().add(crewArrayList.get(i).path.get(j)).add(crewArrayList.get(i).path.get(j+1)).width(15).color(Color.GREEN).geodesic(true);
+                        for(j=0;j<dbCrewList.get(i).path.size()-1;j++){
+                            PolylineOptions options = new PolylineOptions().add(dbCrewList.get(i).path.get(j)).add(dbCrewList.get(i).path.get(j+1)).width(15).color(Color.GREEN).geodesic(true);
                             polylines.add(mMap.addPolyline(options));
                         }
                         break;
                     }
                 }
-
-                contactButton.setVisibility(View.VISIBLE);
-                joinButton.setVisibility(View.VISIBLE);
             }
-
         }) ;
 
         if(getIntent().hasExtra("runningName")) {
@@ -225,7 +379,7 @@ public class RunningCrewInfoList extends AppCompatActivity
             temp = getIntent().getParcelableArrayListExtra("runningPath");
             runningPathStart = getIntent().getParcelableExtra("runningPathStart");
             runningPathEnd = getIntent().getParcelableExtra("runningPathEnd");
-            adapter.addItem(addedCrewName, addedCrewLevel+"분/km", "0명/" + addedCrewNum + "명", addedCrewMinutes + "분" + addedCrewSeconds + "초");
+           // adapter.addItem(addedCrewName, addedCrewLevel+"분/km", "0명/" + addedCrewNum + "명", addedCrewMinutes + "분" + addedCrewSeconds + "초");
 
             RunningCrew tempCrew = new RunningCrew();
             tempCrew.name = addedCrewName;
@@ -237,9 +391,27 @@ public class RunningCrewInfoList extends AppCompatActivity
             tempCrew.pathStart = runningPathStart;
             tempCrew.pathEnd = runningPathEnd;
 
-            crewArrayList.add(tempCrew);
-            Toast.makeText(RunningCrewInfoList.this, crewArrayList.size()+"", Toast.LENGTH_SHORT).show();
+            databaseReference.child("RunningCrew").child(addedCrewName).child("level").setValue(addedCrewLevel);
+            databaseReference.child("RunningCrew").child(addedCrewName).child("number").setValue(addedCrewNum);
+            databaseReference.child("RunningCrew").child(addedCrewName).child("time").setValue(addedCrewMinutes);
+            databaseReference.child("RunningCrew").child(addedCrewName).child("curNum").setValue("0");
+
+            for(int i=0;i<temp.size();i++) {
+                databaseReference.child("RunningCrew").child(addedCrewName).child("latitude").push().setValue(tempCrew.path.get(i).latitude);
+                databaseReference.child("RunningCrew").child(addedCrewName).child("longitude").push().setValue(tempCrew.path.get(i).longitude);
+            }
+            adapter.notifyDataSetChanged();
+
+            //databaseReference.child("RunningCrew").child(tempCrew.name).push().setValue(tempCrew);
+            //crewArrayList.add(tempCrew);
+            //Toast.makeText(RunningCrewInfoList.this, crewArrayList.size()+"", Toast.LENGTH_SHORT).show();
         }
+
+      /*  //Toast.makeText(RunningCrewInfoList.this, "child: "+dbCrewList.size()+"", Toast.LENGTH_SHORT).show();
+        for(int i=0;i<dbCrewList.size();i++){
+            RunningCrew temp = dbCrewList.get(i);
+            adapter.addItem(temp.name, temp.level, temp.memberNumber, temp.time);
+        }*/
     }
 
     @Override
@@ -370,13 +542,10 @@ public class RunningCrewInfoList extends AppCompatActivity
         Log.d(TAG, "onStart");
 
         if (checkPermission()) {
-
             Log.d(TAG, "onStart : call mFusedLocationClient.requestLocationUpdates");
             mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
-
             if (mMap!=null)
                 mMap.setMyLocationEnabled(true);
-
         }
     }
 
@@ -414,8 +583,6 @@ public class RunningCrewInfoList extends AppCompatActivity
             return "잘못된 GPS 좌표";
 
         }
-
-
         if (addresses == null || addresses.size() == 0) {
             Toast.makeText(this, "주소 미발견", Toast.LENGTH_LONG).show();
             return "주소 미발견";
@@ -515,7 +682,6 @@ public class RunningCrewInfoList extends AppCompatActivity
                     break;
                 }
             }
-
 
             if ( check_result ) {
 

@@ -74,7 +74,6 @@ public class ChatActivity extends AppCompatActivity {
     private void openChat(String chatName) {
         // 리스트 어댑터 생성 및 세팅
         final ArrayAdapter<String> adapter
-
                 = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, android.R.id.text1);
         chat_view.setAdapter(adapter);
 

@@ -38,6 +38,7 @@ public class ListViewAdapter extends BaseAdapter {
         TextView levelTextView = (TextView)convertView.findViewById(R.id.crewLevel);
         TextView numTextView = (TextView)convertView.findViewById(R.id.crewNum);
         TextView runTimeTextView = (TextView)convertView.findViewById(R.id.crewRuntime);
+        TextView curNumTextView = (TextView)convertView.findViewById(R.id.crewCurNum);
         Button contactButton = (Button)convertView.findViewById(R.id.contactBtn);
         Button joinButton = (Button)convertView.findViewById(R.id.joinBtn);
 
@@ -49,6 +50,7 @@ public class ListViewAdapter extends BaseAdapter {
         levelTextView.setText(listViewItem.getCrewLevel());
         numTextView.setText(listViewItem.getCrewNum());
         runTimeTextView.setText(listViewItem.getCrewRuntime());
+        curNumTextView.setText(listViewItem.getCrewCurNum());
 
         return convertView;
     }
@@ -65,14 +67,14 @@ public class ListViewAdapter extends BaseAdapter {
     }
 
     // 아이템 데이터 추가를 위한 함수. 개발자가 원하는대로 작성 가능.
-    public void addItem(String name, String level, String num, String runtime) {
+    public void addItem(String name, String level, String num, String runtime, String curNum) {
         ListViewItem item = new ListViewItem();
 
         item.setCrewName(name);
         item.setCrewLevel(level);
         item.setCrewNum(num);
         item.setCrewRuntime(runtime);
-
+        item.setCrewCurNum(curNum);
         listViewItemList.add(item);
     }
 }
